@@ -47,10 +47,7 @@ bot = Client(
     bot_token=BOT_TOKEN
 )
 
-AUTH_USER = os.environ.get('AUTH_USERS', '5680454765').split(',')
-AUTH_USERS = [int(user_id) for user_id in AUTH_USER]
-if int(OWNER) not in AUTH_USERS:
-    AUTH_USERS.append(int(OWNER))
+
 cookies_file_path = os.getenv("cookies_file_path", "youtube_cookies.txt")
 api_url = "http://master-api-v3.vercel.app/"
 api_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzkxOTMzNDE5NSIsInRnX3VzZXJuYW1lIjoi4p61IFtvZmZsaW5lXSIsImlhdCI6MTczODY5MjA3N30.SXzZ1MZcvMp5sGESj0hBKSghhxJ3k1GTWoBUbivUe1I"
