@@ -21,48 +21,6 @@ from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 from base64 import b64decode
 
-
-
-# Same AES Key aur IV jo encryption ke liye use kiya tha
-KEY = b'^#^#&@*HDU@&@*()'   
-IV = b'^@%#&*NSHUE&$*#)'   
-
-# Decryption function
-def dec_url(enc_url):
-    enc_url = enc_url.replace("helper://", "")  # "helper://" prefix hatao
-    cipher = AES.new(KEY, AES.MODE_CBC, IV)
-    decrypted = unpad(cipher.decrypt(b64decode(enc_url)), AES.block_size)
-    return decrypted.decode('utf-8')
-
-# Function to split name & Encrypted URL properly
-def split_name_enc_url(line):
-    match = re.search(r"(helper://\S+)", line)  # Find `helper://` ke baad ka encrypted URL
-    if match:
-        name = line[:match.start()].strip().rstrip(":")  # Encrypted URL se pehle ka text
-        enc_url = match.group(1).strip()  # Sirf Encrypted URL
-        return name, enc_url
-    return line.strip(), None  # Agar encrypted URL nahi mila, to pura line name maan lo
-
-# Function to decrypt file URLs
-def decrypt_file_txt(input_file):
-    output_file = "decrypted_" + input_file  # Output file ka naam
-
-    # Ensure the directory exists
-    output_dir = os.path.dirname(output_file)
-    if output_dir and not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
-    with open(input_file, "r", encoding="utf-8") as f, open(output_file, "w", encoding="utf-8") as out:
-        for line in f:
-            name, enc_url = split_name_enc_url(line)  # Sahi tarike se name aur encrypted URL split karo
-            if enc_url:
-                dec = dec_url(enc_url)  # Decrypt URL
-                out.write(f"{name}: {dec}\n")  # Ek hi `:` likho
-            else:
-                out.write(line.strip() + "\n")  # Agar encrypted URL nahi mila to line jaisa hai waisa likho
-
-    return output_file   # Decrypted file ka naam return karega
-   
 def duration(filename):
     result = subprocess.run(["ffprobe", "-v", "error", "-show_entries",
                              "format=duration", "-of",
@@ -299,8 +257,8 @@ async def download_video(url,cmd, name):
         return os.path.isfile.splitext[0] + "." + "mp4"
 
 
-async def send_doc(bot: Client, m: Message, cc, ka, cc1, prog, count, name):
-    reply = await m.reply_text(f"**『 WELCOME STRANGER 』🙋 ...⏳**\n\n📚𝐓𝐢𝐭𝐥𝐞 » `{name}`\n\n🙆‍♂️ 𝐁𝐨𝐭 𝐌𝐚𝐝𝐞 𝐁𝐲 🤷‍♂️ [『 WELCOME STRANGER 』🙋](https://i.ibb.co/hxQ73ZYw/photo-2025-04-12-18-46-28-7492500010408345604.jpg)")
+async def send_doc(bot: Client, m: Message, cc, ka, cc1, prog, count, name, channel_id):
+    reply = await bot.send_message(channel_id, f"Downloading pdf:\n<pre><code>{name}</code></pre>")
     time.sleep(1)
     start_time = time.time()
     await bot.send_document(ka, caption=cc1)
@@ -334,10 +292,10 @@ async def download_and_decrypt_video(url, cmd, name, key):
             print(f"Failed to decrypt {video_path}.")  
             return None  
 
-async def send_vid(bot: Client, m: Message,cc,filename,thumb,name,prog):
+async def send_vid(bot: Client, m: Message, cc, filename, thumb, name, prog, channel_id):
     subprocess.run(f'ffmpeg -i "{filename}" -ss 00:00:10 -vframes 1 "{filename}.jpg"', shell=True)
     await prog.delete (True)
-    reply = await m.reply_text(f"**『 WELCOME STRANGER 』🙋 ...⏳**\n\n📚𝐓𝐢𝐭𝐥𝐞 » `{name}`\n\n🙆‍♂️ 𝐁𝐨𝐭 𝐌𝐚𝐝𝐞 𝐁𝐲 🤷‍♂️ [『 WELCOME STRANGER 』🙋](https://i.ibb.co/hxQ73ZYw/photo-2025-04-12-18-46-28-7492500010408345604.jpg)")
+    reply = await bot.send_message(channel_id, f"**Generate Thumbnail:**\n{name}")
     try:
         if thumb == "/d":
             thumbnail = f"{filename}.jpg"
@@ -346,17 +304,14 @@ async def send_vid(bot: Client, m: Message,cc,filename,thumb,name,prog):
             
     except Exception as e:
         await m.reply_text(str(e))
-
+      
     dur = int(duration(filename))
-
     start_time = time.time()
 
     try:
-        await m.reply_video(filename,caption=cc, supports_streaming=True,height=720,width=1280,thumb=thumbnail,duration=dur, progress=progress_bar,progress_args=(reply,start_time))
+        await bot.send_video(channel_id, filename, caption=cc, supports_streaming=True, height=720, width=1280, thumb=thumbnail, duration=dur, progress=progress_bar, progress_args=(reply, start_time))
     except Exception:
-        await m.reply_document(filename,caption=cc, progress=progress_bar,progress_args=(reply,start_time))
-    
-    finally:
-        os.remove(filename)
-        os.remove(f"{filename}.jpg")
-        await reply.delete(True)
+        await bot.send_document(channel_id, filename, caption=cc, progress=progress_bar, progress_args=(reply, start_time))
+    os.remove(filename)
+    await reply.delete(True)
+    os.remove(f"{filename}.jpg")
