@@ -641,76 +641,78 @@ async def txt_handler(bot: Client, m: Message):
             elif "webvideos.classplusapp." in url:
                cmd = f'yt-dlp --add-header "referer:https://web.classplusapp.com/" --add-header "x-cdn-tag:empty" -f "{ytf}" "{url}" -o "{name}.mp4"'
             elif "youtube.com" in url or "youtu.be" in url:
-                cmd = f'yt-dlp --cookies youtube_cookies.txt -f "{ytf}" "{url}" -o "{name}".mp4'
-            else:
-                cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
-
-def clean_appx_zip_link(link):
-    """
-    Cleans Appx/ClassX zip links: converts .zipAPPX_V=... style to .zip only.
+                cmd = f'yt-dlp --cookies youtube_cookies.txt -f "{ytf}" "{url}" -o def clean_appx_zip_link(link):
+    
+    Cleans Appx/ClassX zip links: strips off any 'APPX_V=' suffix.
+    Example: turns '.../file.zipAPPX_V=2.0' into '.../file.zip'
     """
     if "APPX_V=" in link:
-        # Keep only up to .zip, remove APPX_V=...
         return link.split("APPX_V=")[0] + "zip"
     return link
 
 def download_file(url, filename):
     """
-    Downloads any file (with streaming, safe for large files).
+    Downloads a file via streaming — safe for large files.
     """
     print(f"Downloading: {url}")
-    r = requests.get(url, stream=True)
-    if r.status_code == 200:
+    response = requests.get(url, stream=True)
+    if response.status_code == 200:
         with open(filename, "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
+            for chunk in response.iter_content(chunk_size=8192):
                 f.write(chunk)
-        print(f"Downloaded: {filename}")
+        print(f"Downloaded successfully: {filename}")
         return True
     else:
-        print(f"Failed to download. Status: {r.status_code}")
+        print(f"Download failed. Status code: {response.status_code}")
         return False
 
-def extract_zip_file(zip_path, out_dir):
+def extract_zip_file(zip_path, output_dir):
     """
-    Safely extracts a zip file to the specified directory.
+    Extracts the contents of a zip file to the given directory.
     """
     print(f"Extracting: {zip_path}")
     with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-        zip_ref.extractall(out_dir)
-    print(f"Extracted to folder: {out_dir}")
-    # List all extracted files
-    files = os.listdir(out_dir)
-    print("Extracted files:", files)
-    return files
+        zip_ref.extractall(output_dir)
+    print(f"Extraction complete: {output_dir}")
+    extracted = os.listdir(output_dir)
+    print("Files extracted:", extracted)
+    return extracted
 
 def process_appx_zip(link):
     """
-    Main function: cleans the link, downloads, extracts, and lists the extracted files.
+    Complete flow:
+    1. Clean the URL
+    2. Download the ZIP
+    3. Extract contents
+    4. List the extracted files
     """
-    cleaned_link = clean_appx_zip_link(link)
-    zip_file = "video_appx.zip"
-    out_dir = "extracted_video"
+    cleaned_url = clean_appx_zip_link(link)
+    zip_filename = "video_appx.zip"
+    extract_folder = "extracted_video"
 
-    # Download the ZIP file
-    success = download_file(cleaned_link, zip_file)
-    if not success:
+    if not download_file(cleaned_url, zip_filename):
         return
 
-    # Extract the ZIP file
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    extracted_files = extract_zip_file(zip_file, out_dir)
-    
-    print("\nCheck the 'extracted_video' folder for files. If you see .mp4 or .mkv, try to play them in a video player.")
-    print("If you see encrypted files or files do not open, it means they are server-protected.")
-    print("Extracted folder:", out_dir)
-    print("Extracted files list:", extracted_files)
+    if not os.path.exists(extract_folder):
+        os.makedirs(extract_folder)
 
-# ==== Example use ====
-if name == "main":
-    # Example link: either .zip or .zipAPPX_V=... type
-    link = "https://transcoded-videos-v2.classx.co.in/videos/jigoapp-data/220286-1737958775/encrypted-2fcacd/720p.zipAPPX_V=2.00"
-    process_appx_zip(link)
+    extracted_files = extract_zip_file(zip_filename, extract_folder)
+
+    print("\n✅ Done! Check the 'extracted_video' folder.")
+    print("👉 If you see .mp4 or .mkv — play them.")
+    print("🚫 If files are encrypted or won’t open, they might be server-protected.")
+    print("Extracted to:", extract_folder)
+    print("Contents:", extracted_files)
+
+# === Entry point ===
+if __name__ == "__main__":
+    # Example link (.zip or .zipAPPX_V= style)
+    sample_link = "https://transcoded-videos-v2.classx.co.in/videos/jigoapp-data/220286-1737958775/encrypted-2fcacd/720p.zipAPPX_V=2.00"
+    process_appx_zip(sample_link)"{name}".mp4'
+            else:
+                cmd = f'yt-dlp -f "{ytf}" "{url}" -o "{name}.mp4"'
+
+
 
             try:
                 cc = f'[🎥]Vid Id : {str(count).zfill(3)}\n**Video Title :** `{name1} [{res}p] .mkv`\n<pre><code>**Batch Name :** {b_name}</code></pre>\n\n**Extracted by➤**`{CR}`\n'
