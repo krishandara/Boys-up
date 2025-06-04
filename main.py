@@ -855,7 +855,7 @@ async def text_handler(bot: Client, m: Message):
             name = f'{name1[:60]}'
 
 # Example key extraction helper — adjust regex for your real Appx v2 key format
-    def extract_keys_from_string(key_string):
+    def extract_keys_from_string(key_string)
     """
     Extracts and formats decryption keys from a given string.
     Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
