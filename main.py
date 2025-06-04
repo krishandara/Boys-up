@@ -1092,69 +1092,47 @@ async def text_handler(bot: Client, m: Message):
     except Exception as e:
         await m.reply_text(str(e))
 
-
-import random
-import string
-
-@bot.on_message(filters.command("genkeys") & filters.private)
-async def generate_bulk_links_with_keys(client: Client, message: Message):
-    print("Genkeys command triggered")
-    await message.reply_text("Handler triggered. Please follow instructions.")
-    """
-    Generates 1000 links with random 16-character keys in the format:
-    NAME:URL*KEY.
-    User can choose PDF, M3U8, or both types.
-    """
+@bot.on_message(filters.command("batchm3u8") & filters.private)
+async def batch_m3u8_handler(client, message):
     await message.reply_text(
-        "What type of links do you want to generate?\n"
-        "- Send `pdf` for PDF links\n"
-        "- Send `m3u8` for .m3u8 video links\n"
-        "- Send `both` for both types",
-        quote=True
+        "Please upload your `.txt` file containing .m3u8 links. Each line: `NAME:LINK` or just `LINK`."
     )
-    input_message: Message = await bot.listen(message.chat.id)
-    choice = input_message.text.strip().lower()
 
-    count = 1000
-    files_sent = []
+    input_msg = await bot.listen(message.chat.id)
+    if not input_msg.document or not input_msg.document.file_name.endswith(".txt"):
+        await message.reply_text("Upload a valid .txt file.")
+        return
 
-    def random_key(length=16):
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    txt_file = await input_msg.download()
+    with open(txt_file, "r", encoding="utf-8") as f:
+        lines = [line.strip() for line in f if line.strip()]
 
-    if choice in ("pdf", "both"):
-        pdf_base_url = "https://appx-content-v2.classx.co.in/subject/2025-06-04-{}.pdf"
-        pdf_lines = []
-        for i in range(1, count + 1):
-            name = f"PDF-NOTE-{i}"
-            url = pdf_base_url.format(str(i).zfill(8))
-            key = random_key()
-            pdf_lines.append(f"{name}:{url}*{key}")
-        pdf_file = "generated_pdf_links.txt"
-        with open(pdf_file, "w") as f:
-            f.write('\n'.join(pdf_lines))
-        await message.reply_document(pdf_file, caption="Generated 1000 PDF links with keys.")
-        files_sent.append(pdf_file)
+    for idx, line in enumerate(lines, 1):
+        if ":" in line and not line.startswith("http"):
+            name, url = line.split(":", 1)
+            name = name.replace(" ", "_")
+        else:
+            url = line
+            name = f"output_{idx}"
 
-    if choice in ("m3u8", "both"):
-        m3u8_base_url = (
-            "https://transcoded-videos-v2.classx.co.in/videos/parmaracademy-data/"
-            "266114-1741590819/hls-ab48b8/1080p/master-{}.984608617.m3u8"
-        )
-        m3u8_lines = []
-        for i in range(1, count + 1):
-            name = f"HLS-STREAM-{i}"
-            master_num = 9240270 + i
-            url = m3u8_base_url.format(master_num)
-            key = random_key()
-            m3u8_lines.append(f"{name}:{url}*{key}")
-        m3u8_file = "generated_m3u8_links.txt"
-        with open(m3u8_file, "w") as f:
-            f.write('\n'.join(m3u8_lines))
-        await message.reply_document(m3u8_file, caption="Generated 1000 .m3u8 links with keys.")
-        files_sent.append(m3u8_file)
+        await message.reply_text(f"🔄 Downloading `{name}` ...")
+        m3u8_filename = f"{name}.m3u8"
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=60) as resp:
+                    if resp.status != 200:
+                        await message.reply_text(f"Failed to download playlist for `{name}`: {resp.status}")
+                        continue
+                    content = await resp.text()
+                    with open(m3u8_filename, "w", encoding="utf-8") as f2:
+                        f2.write(content)
+            await bot.send_document(message.chat.id, m3u8_filename, caption=f"`{name}.m3u8`")
+            os.remove(m3u8_filename)
+        except Exception as e:
+            await message.reply_text(f"Error for `{name}`: {e}")
 
-    for file in files_sent:
-        os.remove(file)
+    os.remove(txt_file)
+    await message.reply_text("Batch .m3u8 download complete.")
 
 bot.run()
 
