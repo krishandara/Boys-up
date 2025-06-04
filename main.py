@@ -1092,15 +1092,14 @@ async def text_handler(bot: Client, m: Message):
     except Exception as e:
         await m.reply_text(str(e))
 
-# ... [existing imports remain unchanged above]
 
 import random
 import string
 
-# ... [existing code remains unchanged above]
-
 @bot.on_message(filters.command("genkeys") & filters.private)
 async def generate_bulk_links_with_keys(client: Client, message: Message):
+    print("Genkeys command triggered")
+    await message.reply_text("Handler triggered. Please follow instructions.")
     """
     Generates 1000 links with random 16-character keys in the format:
     NAME:URL*KEY.
