@@ -899,8 +899,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-   await input4.delete(True)
-    await editable.delete(True)
      
     thumb = "/d"
     count =0
