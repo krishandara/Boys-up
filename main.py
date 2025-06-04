@@ -854,58 +854,6 @@ async def text_handler(bot: Client, m: Message):
             name1 = links.replace("(", "[").replace(")", "]").replace("_", "").replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
             name = f'{name1[:60]}'
 
-def extract_keys_from_string(key_string):
-    """
-    Extracts and formats decryption keys from a given string.
-    Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
-    """
-    key_pattern = re.compile(r'([0-9a-fA-F]{16,}):([0-9a-fA-F]{16,})')
-    matches = key_pattern.findall(key_string)
-    keys = [f"--key {kid}:{key}" for kid, key in matches]
-    return keys
-
-    try:    
-        with open(x, "r") as f:
-            lines = f.read().splitlines()
-        os.remove(x)
-    except Exception:
-        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
-        os.remove(x)
-        return
-
-    for idx, line in enumerate(lines, 1):
-        if not line.strip():
-            continue
-        # Parse line for name and URL
-        if ":" in line and not line.strip().startswith("http"):
-            name, url = line.split(":", 1)
-            name = name.strip().replace(" ", "_")
-            url = url.strip()
-        else:
-            url = line.strip()
-            name = f"output_{idx}"
-
-        safe_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', name)
-
-        # Only process Appx v2 links
-        if "appx/v2" in url or "appx-v2" in url or "appx2" in url:
-            ext = url.split('.')[-1].split('?')[0] if '.' in url else "bin"
-            file_filename = f"{safe_name}.{ext}"
-
-            # --- Key Extraction Section ---
-            # Example: Suppose the key is provided as a query param (key=) or in the URL string.
-            key_string = ""
-            if "key=" in url:
-                # Extract everything after key= up to &, space, or end of string
-                key_match = re.search(r'key=([0-9a-fA-F:]+)', url)
-                if key_match:
-                    key_string = key_match.group(1)
-            # If key_string found, format for yt-dlp/ffmpeg
-            keys_string = ""
-            if key_string:
-                extracted_keys = extract_keys_from_string(key_string)
-                keys_string = " ".join(extracted_keys)
-                await m.reply_text(f"Key(s) for `{safe_name}`: `{keys_string}`")
 
             try:
                 await m.reply_text(f"🔄 Downloading `{file_filename}` ...")
@@ -915,17 +863,57 @@ def extract_keys_from_string(key_string):
                             await m.reply_text(f"Failed to download `{safe_name}`: HTTP {resp.status}")
                             continue
                         content = await resp.read()
-                        with open(file_filename, "wb") as f2:
-                            f2.write(content)
-                await bot.send_document(m.chat.id, file_filename, caption=f"`{file_filename}`")
-                os.remove(file_filename)
-            except Exception as e:
-                await m.reply_text(f"Error for `{safe_name}`: {e}")
-        else:
-            await m.reply_text(f"Skipping non-Appx v2 link for `{safe_name}`: `{url}`")
+                        with open(fiimport requests
 
-    await m.reply_text("Appx v2 batch download complete.")                
-    
+class DecryptionError(Exception):
+    """Custom exception for decryption errors."""
+    pass
+
+def read_links_from_file(file_path):
+    """Reads links from a specified text file."""
+    try:
+        with open(file_path, 'r') as file:
+            links = file.readlines()
+            return [link.strip() for link in links if link.strip()]
+    except FileNotFoundError:
+        raise DecryptionError(f"File not found: {file_path}")
+    except Exception as e:
+        raise DecryptionError(f"An error occurred while reading the file: {str(e)}")
+
+def decrypt_video(api_key, video_url):
+    """Decrypts the video using the provided API key and URL."""
+    try:
+        response = requests.post(
+            url='https://api.example.com/decrypt',  # Replace with actual API endpoint
+            json={'api_key': api_key, 'video_url': video_url}
+        )
+        response.raise_for_status()  # Raise an error for bad responses
+        return response.json()  # Assuming the response contains JSON data
+    except requests.exceptions.HTTPError as http_err:
+        raise DecryptionError(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        raise DecryptionError(f"Request error occurred: {req_err}")
+    except Exception as e:
+        raise DecryptionError(f"An error occurred during decryption: {str(e)}")
+
+def main(api_key, links_file):
+    """Main function to execute the decryption process."""
+    try:
+        links = read_links_from_file(links_file)
+        for link in links:
+            print(f"Decrypting video from: {link}")
+            decrypted_data = decrypt_video(api_key, link)
+            print(f"Decrypted data for {link}: {decrypted_data}")
+    except DecryptionError as decryption_error:
+        print(f"Decryption failed: {decryption_error}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {str(e)}")
+
+if __name__ == "__main__":
+    API_KEY = "your_api_key_here"  # Replace with your actual API key
+    LINKS_FILE = "links.txt"  # Replace with the path to your links file
+    main(API_KEY, LINKS_FILE)
+
         
             if "visionias" in url:
                 async with ClientSession() as session:
