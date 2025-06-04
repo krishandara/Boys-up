@@ -1030,13 +1030,9 @@ def decrypt_link(encrypted_link, api_key):
         print(f"Decrypted Link: {decrypted_link}")
         return decrypted_link
     except Exception as e:
-        try:
-        Vxy = link.replace("file/d/","uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing","")
-        url = Vxy
-
-        name1 = links.replace("(", "[").replace(")", "]").replace("_", "").replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@","").replace("*", "").replace("&", "").replace(".", "")
-        name = f'{name1[:60]}'
-
+        print(f"Error decrypting link: {e}")
+        return None
+    
         if "visionias" in url:
             async with ClientSession() as session:
                 async with session.get(url, headers={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'}) as resp:
