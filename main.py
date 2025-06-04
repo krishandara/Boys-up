@@ -1084,26 +1084,12 @@ async def text_handler(bot: Client, m: Message):
                     await prog.delete(True)
                     await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
                     time.sleep(1)
-
-                        except Exception as e:
-                await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »**__\n{str(e)}")
-                # Optionally add pass or return if needed
-                pass
+                    
+                    except Exception as e:
+                            await m.reply_text(f"⚠️ An error occurred: {str(e)}")
 
 
 
-
-
-# Example key extraction helper — adjust regex for your real Appx v2 key format
-def extract_keys_from_string(key_string):
-    """
-    Extracts and formats decryption keys from a given string.
-    Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
-    """
-    key_pattern = re.compile(r'([0-9a-fA-F]{16,}):([0-9a-fA-F]{16,})')
-    matches = key_pattern.findall(key_string)
-    keys = [f"--key {kid}:{key}" for kid, key in matches]
-    return keys
 
 @bot.on_message(filters.command(["maya"]))
 async def maya_handler(bot: Client, m: Message):  
@@ -1116,6 +1102,17 @@ async def maya_handler(bot: Client, m: Message):
     x = await input.download()
     await input.delete(True)
     file_name, ext = os.path.splitext(os.path.basename(x))
+
+    # Example key extraction helper — adjust regex for your real Appx v2 key format
+    def extract_keys_from_string(key_string):
+    """
+    Extracts and formats decryption keys from a given string.
+    Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
+    """
+    key_pattern = re.compile(r'([0-9a-fA-F]{16,}):([0-9a-fA-F]{16,})')
+    matches = key_pattern.findall(key_string)
+    keys = [f"--key {kid}:{key}" for kid, key in matches]
+    return keys
 
     try:    
         with open(x, "r") as f:
@@ -1177,7 +1174,7 @@ async def maya_handler(bot: Client, m: Message):
         else:
             await m.reply_text(f"Skipping non-Appx v2 link for `{safe_name}`: `{url}`")
 
-    await m.reply_text("Appx v2 batch download complete.")                pass
+    await m.reply_text("Appx v2 batch download complete.")                
 
     except Exception as e:
            await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »**__\n{str(e)}")
