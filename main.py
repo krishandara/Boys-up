@@ -853,7 +853,81 @@ async def text_handler(bot: Client, m: Message):
 
             name1 = links.replace("(", "[").replace(")", "]").replace("_", "").replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
             name = f'{name1[:60]}'
-            
+
+# Example key extraction helper — adjust regex for your real Appx v2 key format
+    def extract_keys_from_string(key_string):
+    """
+    Extracts and formats decryption keys from a given string.
+    Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
+    """
+    key_pattern = re.compile(r'([0-9a-fA-F]{16,}):([0-9a-fA-F]{16,})')
+    matches = key_pattern.findall(key_string)
+    keys = [f"--key {kid}:{key}" for kid, key in matches]
+    return keys
+
+    try:    
+        with open(x, "r") as f:
+            lines = f.read().splitlines()
+        os.remove(x)
+    except Exception:
+        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
+        os.remove(x)
+        return
+
+    for idx, line in enumerate(lines, 1):
+        if not line.strip():
+            continue
+        # Parse line for name and URL
+        if ":" in line and not line.strip().startswith("http"):
+            name, url = line.split(":", 1)
+            name = name.strip().replace(" ", "_")
+            url = url.strip()
+        else:
+            url = line.strip()
+            name = f"output_{idx}"
+
+        safe_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', name)
+
+        # Only process Appx v2 links
+        if "appx/v2" in url or "appx-v2" in url or "appx2" in url:
+            ext = url.split('.')[-1].split('?')[0] if '.' in url else "bin"
+            file_filename = f"{safe_name}.{ext}"
+
+            # --- Key Extraction Section ---
+            # Example: Suppose the key is provided as a query param (key=) or in the URL string.
+            key_string = ""
+            if "key=" in url:
+                # Extract everything after key= up to &, space, or end of string
+                key_match = re.search(r'key=([0-9a-fA-F:]+)', url)
+                if key_match:
+                    key_string = key_match.group(1)
+            # If key_string found, format for yt-dlp/ffmpeg
+            keys_string = ""
+            if key_string:
+                extracted_keys = extract_keys_from_string(key_string)
+                keys_string = " ".join(extracted_keys)
+                await m.reply_text(f"Key(s) for `{safe_name}`: `{keys_string}`")
+
+            try:
+                await m.reply_text(f"🔄 Downloading `{file_filename}` ...")
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url, timeout=120) as resp:
+                        if resp.status != 200:
+                            await m.reply_text(f"Failed to download `{safe_name}`: HTTP {resp.status}")
+                            continue
+                        content = await resp.read()
+                        with open(file_filename, "wb") as f2:
+                            f2.write(content)
+                await bot.send_document(m.chat.id, file_filename, caption=f"`{file_filename}`")
+                os.remove(file_filename)
+            except Exception as e:
+                await m.reply_text(f"Error for `{safe_name}`: {e}")
+        else:
+            await m.reply_text(f"Skipping non-Appx v2 link for `{safe_name}`: `{url}`")
+
+    await m.reply_text("Appx v2 batch download complete.")                
+    
+        
             if "visionias" in url:
                 async with ClientSession() as session:
                     async with session.get(url, headers={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'Accept-Language': 'en-US,en;q=0.9', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Pragma': 'no-cache', 'Referer': 'http://www.visionias.in/', 'Sec-Fetch-Dest': 'iframe', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Site': 'cross-site', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Linux; Android 12; RMX2121) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36', 'sec-ch-ua': '"Chromium";v="107", "Not=A?Brand";v="24"', 'sec-ch-ua-mobile': '?1', 'sec-ch-ua-platform': '"Android"',}) as resp:
@@ -1085,204 +1159,6 @@ async def text_handler(bot: Client, m: Message):
                     await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
                     time.sleep(1)
                     
-
-@bot.on_message(filters.command(["maya"]) )
-async def txt_handler(bot: Client, m: Message):  
-    editable = await m.reply_text(f"__Hii, I am drm Downloader Bot__\n\n<i>Send Me Your txt file which enclude Name with url...\nE.g: Name: Link</i>")
-    input: Message = await bot.listen(editable.chat.id)
-    x = await input.download()
-    await input.delete(True)
-    file_name, ext = os.path.splitext(os.path.basename(x))  # Extract filename & extension
-    path = f"./downloads/{m.chat.id}"
-    pdf_count = 0
-    img_count = 0
-    other_count = 0
-    
-    try:    
-        with open(x, "r") as f:
-            content = f.read()
-        content = content.split("\n")
-        
-        links = []
-        for i in content:
-            if "://" in i:
-                url = i.split("://", 1)[1]
-                links.append(i.split("://", 1))
-                if ".pdf" in url:
-                    pdf_count += 1
-                elif url.endswith((".png", ".jpeg", ".jpg")):
-                    img_count += 1
-                else:
-                    other_count += 1
-        os.remove(x)
-    except:
-        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
-        os.remove(x)
-        return
-    
-    await editable.edit(f"Total 🔗 links found are {len(links)}\nSend From where you want to download.initial is 1")
-    if m.chat.id not in AUTH_USERS:
-        print(f"User ID not in AUTH_USERS", m.chat.id)
-        await bot.send_message(m.chat.id, f"__Oopss! You are not a Premium member __\n__PLEASE /upgrade YOUR PLAN__\n__Send me your user id for authorization__\n__Your User id__ - `{m.chat.id}`\n")
-        return
-    input0: Message = await bot.listen(editable.chat.id)
-    raw_text = input0.text
-    await input0.delete(True)
-           
-    await editable.edit("__Enter Batch Name or send /d for grabbing from text filename.__")
-    input1: Message = await bot.listen(editable.chat.id)
-    raw_text0 = input1.text
-    await input1.delete(True)
-    if raw_text0 == '/d':
-        b_name = file_name.replace('_', ' ')
-    else:
-        b_name = raw_text0
-
-    await editable.edit("__Enter resolution or Video Quality (`144`, `240`, `360`, `480`, `720`, `1080`)__")
-    input2: Message = await bot.listen(editable.chat.id)
-    raw_text2 = input2.text
-    quality = f"{raw_text2}p"
-    await input2.delete(True)
-    try:
-        if raw_text2 == "144":
-            res = "256x144"
-        elif raw_text2 == "240":
-            res = "426x240"
-        elif raw_text2 == "360":
-            res = "640x360"
-        elif raw_text2 == "480":
-            res = "854x480"
-        elif raw_text2 == "720":
-            res = "1280x720"
-        elif raw_text2 == "1080":
-            res = "1920x1080" 
-        else: 
-            res = "UN"
-    except Exception:
-            res = "UN"
-
-    await editable.edit("__Enter Your Channel Name or Owner Name__\n__Send /d for use default__")
-    input3: Message = await bot.listen(editable.chat.id)
-    raw_text3 = input3.text
-    await input3.delete(True)
-    if raw_text3 == '/d':
-        CR = f"{CREDIT}"
-    else:
-        CR = raw_text3
-
-    await editable.edit("🔹Enter Your PW Token For 𝐌𝐏𝐃 𝐔𝐑𝐋\n🔹Send /anything for use default")
-    input4: Message = await bot.listen(editable.chat.id)
-    raw_text4 = input4.text
-    await input4.delete(True)
-
-    await editable.edit(f"Send the Video Thumb URL\nSend /d for use default\n\nYou can direct upload thumb\nSend **No** for use default")
-    input6 = message = await bot.listen(editable.chat.id)
-    raw_text6 = input6.text
-    await input6.delete(True)
-
-    if input6.photo:
-        thumb = await input6.download()  # Use the photo sent by the user
-    elif raw_text6.startswith("http://") or raw_text6.startswith("https://"):
-        # If a URL is provided, download thumbnail from the URL
-        getstatusoutput(f"wget '{raw_text6}' -O 'thumb.jpg'")
-        thumb = "thumb.jpg"
-    else:
-        thumb = raw_text6
-
-    await editable.edit("__Please Provide Channel id or where you want to Upload video or Sent Video otherwise /d __\n\n__And make me admin in this channel then i can able to Upload otherwise i can't__")
-    input7: Message = await bot.listen(editable.chat.id)
-    raw_text7 = input7.text
-    if "/d" in input7.text:
-        channel_id = m.chat.id
-    else:
-        channel_id = input7.text
-    await input7.delete()     
-    await editable.delete()
-
-    if "/d" in raw_text7:
-        batch_message = await m.reply_text(f"<b>🎯Target Batch : {b_name}</b>")
-    else:
-        try:
-            batch_message = await bot.send_message(chat_id=channel_id, text=f"<b>🎯Target Batch : {b_name}</b>")
-            await bot.send_message(chat_id=m.chat.id, text=f"<b><i>🎯Target Batch : {b_name}</i></b>\n\n🔄 Your Task is under processing, please check your Set Channel📱. Once your task is complete, I will inform you 📩")
-        except Exception as e:
-            await m.reply_text(f"**Fail Reason »** {e}\n")
-            return
-
-    
-    # Example key extraction helper — adjust regex for your real Appx v2 key format
-    def extract_keys_from_string(key_string):
-    """
-    Extracts and formats decryption keys from a given string.
-    Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
-    """
-    key_pattern = re.compile(r'([0-9a-fA-F]{16,}):([0-9a-fA-F]{16,})')
-    matches = key_pattern.findall(key_string)
-    keys = [f"--key {kid}:{key}" for kid, key in matches]
-    return keys
-
-    try:    
-        with open(x, "r") as f:
-            lines = f.read().splitlines()
-        os.remove(x)
-    except Exception:
-        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
-        os.remove(x)
-        return
-
-    for idx, line in enumerate(lines, 1):
-        if not line.strip():
-            continue
-        # Parse line for name and URL
-        if ":" in line and not line.strip().startswith("http"):
-            name, url = line.split(":", 1)
-            name = name.strip().replace(" ", "_")
-            url = url.strip()
-        else:
-            url = line.strip()
-            name = f"output_{idx}"
-
-        safe_name = re.sub(r'[^a-zA-Z0-9_\-\.]', '_', name)
-
-        # Only process Appx v2 links
-        if "appx/v2" in url or "appx-v2" in url or "appx2" in url:
-            ext = url.split('.')[-1].split('?')[0] if '.' in url else "bin"
-            file_filename = f"{safe_name}.{ext}"
-
-            # --- Key Extraction Section ---
-            # Example: Suppose the key is provided as a query param (key=) or in the URL string.
-            key_string = ""
-            if "key=" in url:
-                # Extract everything after key= up to &, space, or end of string
-                key_match = re.search(r'key=([0-9a-fA-F:]+)', url)
-                if key_match:
-                    key_string = key_match.group(1)
-            # If key_string found, format for yt-dlp/ffmpeg
-            keys_string = ""
-            if key_string:
-                extracted_keys = extract_keys_from_string(key_string)
-                keys_string = " ".join(extracted_keys)
-                await m.reply_text(f"Key(s) for `{safe_name}`: `{keys_string}`")
-
-            try:
-                await m.reply_text(f"🔄 Downloading `{file_filename}` ...")
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=120) as resp:
-                        if resp.status != 200:
-                            await m.reply_text(f"Failed to download `{safe_name}`: HTTP {resp.status}")
-                            continue
-                        content = await resp.read()
-                        with open(file_filename, "wb") as f2:
-                            f2.write(content)
-                await bot.send_document(m.chat.id, file_filename, caption=f"`{file_filename}`")
-                os.remove(file_filename)
-            except Exception as e:
-                await m.reply_text(f"Error for `{safe_name}`: {e}")
-        else:
-            await m.reply_text(f"Skipping non-Appx v2 link for `{safe_name}`: `{url}`")
-
-    await m.reply_text("Appx v2 batch download complete.")                
-
     except Exception as e:
            await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »**__\n{str(e)}")
 
