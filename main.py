@@ -1146,6 +1146,3 @@ def main():
                 pass
 
             bot.run()       
-    
-          
-
