@@ -1145,4 +1145,6 @@ def main():
                 await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢ɴɢ 𝐈𝐧𝐭𝐞ʀ𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »** {str(e)}__")
                 pass
 
-            bot.run()       
+
+if __name__ == "__main__":
+    bot.run()       
