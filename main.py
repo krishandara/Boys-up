@@ -13,6 +13,7 @@ import urllib.parse
 import yt_dlp
 import tgcrypto
 import cloudscraper
+from cryptography.fernet import Fernet
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
 from base64 import b64encode, b64decode
@@ -840,7 +841,65 @@ async def text_handler(bot: Client, m: Message):
     await editable.edit("<pre><code>Enter Your PW Token For 𝐌𝐏𝐃 𝐔𝐑𝐋\nOtherwise send anything</code></pre>")
     input4: Message = await bot.listen(editable.chat.id, filters=filters.text & filters.user(m.from_user.id))
     raw_text4 = input4.text
-    await input4.delete(True)
+ 
+
+
+# Function to generate an API key
+def generate_api_key():
+    try:
+        # Generate a random API key
+        api_key = Fernet.generate_key().decode()
+        print(f"Generated API Key: {api_key}")
+        return api_key
+    except Exception as e:
+        print(f"Error generating API key: {e}")
+        return None
+
+# Function to read video links from a text file
+def read_video_links(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            links = file.readlines()
+            links = [link.strip() for link in links if link.strip()]
+            print(f"Retrieved {len(links)} video links.")
+            return links
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} was not found.")
+        return []
+    except Exception as e:
+        print(f"Error reading video links: {e}")
+        return []
+
+# Function to decrypt a given encrypted link
+def decrypt_link(encrypted_link, api_key):
+    try:
+        fernet = Fernet(api_key.encode())
+        decrypted_link = fernet.decrypt(encrypted_link.encode()).decode()
+        print(f"Decrypted Link: {decrypted_link}")
+        return decrypted_link
+    except Exception as e:
+        print(f"Error decrypting link: {e}")
+        return None
+
+# Main function to execute the script
+def main():
+    api_key = generate_api_key()
+    if api_key is None:
+        return
+
+    # Path to the text file containing video links
+    file_path = 'video_links.txt'
+    video_links = read_video_links(file_path)
+
+    for encrypted_link in video_links:
+        decrypted_link = decrypt_link(encrypted_link, api_key)
+        if decrypted_link:
+            # Here you can add code to send the decrypted link to a Telegram bot
+            print(f"Processed link: {decrypted_link}")
+
+if __name__ == "__main__":
+    main()
+   await input4.delete(True)
     await editable.delete(True)
      
     thumb = "/d"
@@ -865,54 +924,6 @@ async def text_handler(bot: Client, m: Message):
                         content = await resp.read()
                         with open(fiimport requests
 
-class DecryptionError(Exception):
-    """Custom exception for decryption errors."""
-    pass
-
-def read_links_from_file(file_path):
-    """Reads links from a specified text file."""
-    try:
-        with open(file_path, 'r') as file:
-            links = file.readlines()
-            return [link.strip() for link in links if link.strip()]
-    except FileNotFoundError:
-        raise DecryptionError(f"File not found: {file_path}")
-    except Exception as e:
-        raise DecryptionError(f"An error occurred while reading the file: {str(e)}")
-
-def decrypt_video(api_key, video_url):
-    """Decrypts the video using the provided API key and URL."""
-    try:
-        response = requests.post(
-            url='https://api.example.com/decrypt',  # Replace with actual API endpoint
-            json={'api_key': api_key, 'video_url': video_url}
-        )
-        response.raise_for_status()  # Raise an error for bad responses
-        return response.json()  # Assuming the response contains JSON data
-    except requests.exceptions.HTTPError as http_err:
-        raise DecryptionError(f"HTTP error occurred: {http_err}")
-    except requests.exceptions.RequestException as req_err:
-        raise DecryptionError(f"Request error occurred: {req_err}")
-    except Exception as e:
-        raise DecryptionError(f"An error occurred during decryption: {str(e)}")
-
-def main(api_key, links_file):
-    """Main function to execute the decryption process."""
-    try:
-        links = read_links_from_file(links_file)
-        for link in links:
-            print(f"Decrypting video from: {link}")
-            decrypted_data = decrypt_video(api_key, link)
-            print(f"Decrypted data for {link}: {decrypted_data}")
-    except DecryptionError as decryption_error:
-        print(f"Decryption failed: {decryption_error}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {str(e)}")
-
-if __name__ == "__main__":
-    API_KEY = "your_api_key_here"  # Replace with your actual API key
-    LINKS_FILE = "links.txt"  # Replace with the path to your links file
-    main(API_KEY, LINKS_FILE)
 
         
             if "visionias" in url:
