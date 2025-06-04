@@ -856,10 +856,10 @@ async def text_handler(bot: Client, m: Message):
 
 # Example key extraction helper — adjust regex for your real Appx v2 key format
     def extract_keys_from_string(key_string)
-    """
+    
     Extracts and formats decryption keys from a given string.
     Returns a list of keys in the format suitable for yt-dlp/ffmpeg.
-    """
+    
     key_pattern = re.compile(r'([0-9a-fA-F]{16,}):([0-9a-fA-F]{16,})')
     matches = key_pattern.findall(key_string)
     keys = [f"--key {kid}:{key}" for kid, key in matches]
