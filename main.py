@@ -1141,8 +1141,17 @@ def main():
                     await prog.delete(True)
                     await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
                     time.sleep(1)
-                    
+                         except Exception as e:
+                    await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »**__\n{str(e)}")
+                    pass
+
+    except Exception as e:
+        await m.reply_text(str(e))
+
+
+
+
+bot.run()       
     
-          if __name__ == "__main__":
-              bot.run()
+          
 
