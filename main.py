@@ -897,13 +897,12 @@ def main():
             # Here you can add code to send the decrypted link to a Telegram bot
             print(f"Processed link: {decrypted_link}")
 
-if __name__ == "__main__":
-    main()
      
     thumb = "/d"
     count =0
     arg =1
     channel_id = m.chat.id
+    
     try:
             Vxy = link.replace("file/d/","uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing","")
             url = Vxy
@@ -911,19 +910,7 @@ if __name__ == "__main__":
             name1 = links.replace("(", "[").replace(")", "]").replace("_", "").replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
             name = f'{name1[:60]}'
 
-
-            try:
-                await m.reply_text(f"🔄 Downloading `{file_filename}` ...")
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=120) as resp:
-                        if resp.status != 200:
-                            await m.reply_text(f"Failed to download `{safe_name}`: HTTP {resp.status}")
-                            continue
-                        content = await resp.read()
-                        with open(fiimport requests
-
-
-        
+ 
             if "visionias" in url:
                 async with ClientSession() as session:
                     async with session.get(url, headers={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9', 'Accept-Language': 'en-US,en;q=0.9', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Pragma': 'no-cache', 'Referer': 'http://www.visionias.in/', 'Sec-Fetch-Dest': 'iframe', 'Sec-Fetch-Mode': 'navigate', 'Sec-Fetch-Site': 'cross-site', 'Upgrade-Insecure-Requests': '1', 'User-Agent': 'Mozilla/5.0 (Linux; Android 12; RMX2121) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Mobile Safari/537.36', 'sec-ch-ua': '"Chromium";v="107", "Not=A?Brand";v="24"', 'sec-ch-ua-mobile': '?1', 'sec-ch-ua-platform': '"Android"',}) as resp:
