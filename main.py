@@ -1143,5 +1143,6 @@ def main():
                     time.sleep(1)
                     
     
-bot.run()
+          if __name__ == "__main__":
+              bot.run()
 
