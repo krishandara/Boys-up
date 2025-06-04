@@ -1092,20 +1092,140 @@ async def text_handler(bot: Client, m: Message):
     except Exception as e:
         await m.reply_text(str(e))
 
-@bot.on_message(filters.command("batchm3u8") & filters.private)
-async def batch_m3u8_handler(client, message):
-    await message.reply_text(
-        "Please upload your `.txt` file containing .m3u8 links. Each line: `NAME:LINK` or just `LINK`."
-    )
-
-    input_msg = await bot.listen(message.chat.id)
-    if not input_msg.document or not input_msg.document.file_name.endswith(".txt"):
-        await message.reply_text("Upload a valid .txt file.")
+@bot.on_message(filters.command(["maya"]) )
+async def txt_handler(bot: Client, m: Message):  
+    editable = await m.reply_text(f"__Hii, I am drm Downloader Bot__\n\n<i>Send Me Your txt file which enclude Name with url...\nE.g: Name: Link</i>")
+    input: Message = await bot.listen(editable.chat.id)
+    x = await input.download()
+    await input.delete(True)
+    file_name, ext = os.path.splitext(os.path.basename(x))  # Extract filename & extension
+    path = f"./downloads/{m.chat.id}"
+    pdf_count = 0
+    img_count = 0
+    other_count = 0
+    
+    try:    
+        with open(x, "r") as f:
+            content = f.read()
+        content = content.split("\n")
+        
+        links = []
+        for i in content:
+            if "://" in i:
+                url = i.split("://", 1)[1]
+                links.append(i.split("://", 1))
+                if ".pdf" in url:
+                    pdf_count += 1
+                elif url.endswith((".png", ".jpeg", ".jpg")):
+                    img_count += 1
+                else:
+                    other_count += 1
+        os.remove(x)
+    except:
+        await m.reply_text("<pre><code>🔹Invalid file input.</code></pre>")
+        os.remove(x)
         return
+    
+    await editable.edit(f"Total 🔗 links found are {len(links)}\nSend From where you want to download.initial is 1")
+    if m.chat.id not in AUTH_USERS:
+        print(f"User ID not in AUTH_USERS", m.chat.id)
+        await bot.send_message(m.chat.id, f"__Oopss! You are not a Premium member __\n__PLEASE /upgrade YOUR PLAN__\n__Send me your user id for authorization__\n__Your User id__ - `{m.chat.id}`\n")
+        return
+    input0: Message = await bot.listen(editable.chat.id)
+    raw_text = input0.text
+    await input0.delete(True)
+           
+    await editable.edit("__Enter Batch Name or send /d for grabbing from text filename.__")
+    input1: Message = await bot.listen(editable.chat.id)
+    raw_text0 = input1.text
+    await input1.delete(True)
+    if raw_text0 == '/d':
+        b_name = file_name.replace('_', ' ')
+    else:
+        b_name = raw_text0
 
-    txt_file = await input_msg.download()
-    with open(txt_file, "r", encoding="utf-8") as f:
-        lines = [line.strip() for line in f if line.strip()]
+    await editable.edit("__Enter resolution or Video Quality (`144`, `240`, `360`, `480`, `720`, `1080`)__")
+    input2: Message = await bot.listen(editable.chat.id)
+    raw_text2 = input2.text
+    quality = f"{raw_text2}p"
+    await input2.delete(True)
+    try:
+        if raw_text2 == "144":
+            res = "256x144"
+        elif raw_text2 == "240":
+            res = "426x240"
+        elif raw_text2 == "360":
+            res = "640x360"
+        elif raw_text2 == "480":
+            res = "854x480"
+        elif raw_text2 == "720":
+            res = "1280x720"
+        elif raw_text2 == "1080":
+            res = "1920x1080" 
+        else: 
+            res = "UN"
+    except Exception:
+            res = "UN"
+
+    await editable.edit("__Enter Your Channel Name or Owner Name__\n__Send /d for use default__")
+    input3: Message = await bot.listen(editable.chat.id)
+    raw_text3 = input3.text
+    await input3.delete(True)
+    if raw_text3 == '/d':
+        CR = f"{CREDIT}"
+    else:
+        CR = raw_text3
+
+    await editable.edit("🔹Enter Your PW Token For 𝐌𝐏𝐃 𝐔𝐑𝐋\n🔹Send /anything for use default")
+    input4: Message = await bot.listen(editable.chat.id)
+    raw_text4 = input4.text
+    await input4.delete(True)
+
+    await editable.edit(f"Send the Video Thumb URL\nSend /d for use default\n\nYou can direct upload thumb\nSend **No** for use default")
+    input6 = message = await bot.listen(editable.chat.id)
+    raw_text6 = input6.text
+    await input6.delete(True)
+
+    if input6.photo:
+        thumb = await input6.download()  # Use the photo sent by the user
+    elif raw_text6.startswith("http://") or raw_text6.startswith("https://"):
+        # If a URL is provided, download thumbnail from the URL
+        getstatusoutput(f"wget '{raw_text6}' -O 'thumb.jpg'")
+        thumb = "thumb.jpg"
+    else:
+        thumb = raw_text6
+
+    await editable.edit("__Please Provide Channel id or where you want to Upload video or Sent Video otherwise /d __\n\n__And make me admin in this channel then i can able to Upload otherwise i can't__")
+    input7: Message = await bot.listen(editable.chat.id)
+    raw_text7 = input7.text
+    if "/d" in input7.text:
+        channel_id = m.chat.id
+    else:
+        channel_id = input7.text
+    await input7.delete()     
+    await editable.delete()
+
+    if "/d" in raw_text7:
+        batch_message = await m.reply_text(f"<b>🎯Target Batch : {b_name}</b>")
+    else:
+        try:
+            batch_message = await bot.send_message(chat_id=channel_id, text=f"<b>🎯Target Batch : {b_name}</b>")
+            await bot.send_message(chat_id=m.chat.id, text=f"<b><i>🎯Target Batch : {b_name}</i></b>\n\n🔄 Your Task is under processing, please check your Set Channel📱. Once your task is complete, I will inform you 📩")
+        except Exception as e:
+            await m.reply_text(f"**Fail Reason »** {e}\n")
+            return
+        
+    failed_count = 0
+    count =int(raw_text)    
+    arg = int(raw_text)
+    try:
+        for i in range(arg-1, len(links)):
+            Vxy = links[i][1].replace("file/d/","uc?export=download&id=").replace("www.youtube-nocookie.com/embed", "youtu.be").replace("?modestbranding=1", "").replace("/view?usp=sharing","")
+            url = "https://" + Vxy
+            link0 = "https://" + Vxy
+
+            name1 = links[i][0].replace("(", "[").replace(")", "]").replace("_", "").replace("\t", "").replace(":", "").replace("/", "").replace("+", "").replace("#", "").replace("|", "").replace("@", "").replace("*", "").replace(".", "").replace("https", "").replace("http", "").strip()
+            name = f'{name1[:60]}'
 
     for idx, line in enumerate(lines, 1):
         if ":" in line and not line.startswith("http"):
