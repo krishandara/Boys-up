@@ -1085,11 +1085,6 @@ async def text_handler(bot: Client, m: Message):
                     await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
                     time.sleep(1)
                     
-                    except Exception as e:
-                            await m.reply_text(f"⚠️ An error occurred: {str(e)}")
-
-
-
 
 @bot.on_message(filters.command(["maya"]))
 async def maya_handler(bot: Client, m: Message):  
