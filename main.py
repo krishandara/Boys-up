@@ -1179,6 +1179,5 @@ def main():
                     await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
                     time.sleep(1)
                     
-    
-bot.run()
 
+    bot.run()
