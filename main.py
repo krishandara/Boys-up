@@ -1263,7 +1263,8 @@ def decrypt_link(encrypted_link, api_key):
                 await helper.send_vid(bot, m, cc, filename, thumb, name, prog, channel_id)
                 time.sleep(1)
         except Exception as e:
-            await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »** {str(e)}__")    print(f"Error decrypting link: {e}")
-        
+            await m.reply_text(f"⚠️𝐃𝐨𝐰𝐧𝐥𝐨𝐚𝐝𝐢𝐧𝐠 𝐈𝐧𝐭𝐞𝐫𝐮𝐩𝐭𝐞𝐝\n\n🔗𝐋𝐢𝐧𝐤 » `{link}`\n\n__**⚠️Failed Reason »** {str(e)}__")
+print(f"Error decrypting link: {e}")
+
 bot.run()
 
