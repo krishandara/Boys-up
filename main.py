@@ -1022,6 +1022,8 @@ def read_video_links(file_path):
         print(f"Error reading video links: {e}")
         return []
 
+# ... (rest of your code remains unchanged above)
+
 # Function to decrypt a given encrypted link
 def decrypt_link(encrypted_link, api_key):
     try:
@@ -1032,12 +1034,12 @@ def decrypt_link(encrypted_link, api_key):
     except Exception as e:
         print(f"Error decrypting link: {e}")
         return None
-    
-        if "visionias" in url:
-            async with ClientSession() as session:
-                async with session.get(url, headers={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'}) as resp:
-                    text = await resp.text()
-                    url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1)
+
+    if "visionias" in url:
+        async with ClientSession() as session:
+            async with session.get(url, headers={'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9'}) as resp:
+                text = await resp.text()
+                url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1
 
         if "acecwply" in url:
             cmd = f'yt-dlp -o "{name}.%(ext)s" -f "bestvideo[height<={raw_text2}]+bestaudio" --hls-prefer-ffmpeg --no-keep-video --remux-video mkv --no-warning "{url}"'
