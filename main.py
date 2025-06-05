@@ -1022,8 +1022,6 @@ def read_video_links(file_path):
         print(f"Error reading video links: {e}")
         return []
 
-# ... (rest of your code remains unchanged above)
-
 # Function to decrypt a given encrypted link
 def decrypt_link(encrypted_link, api_key):
     try:
@@ -1041,8 +1039,8 @@ def decrypt_link(encrypted_link, api_key):
                 text = await resp.text()
                 url = re.search(r"(https://.*?playlist.m3u8.*?)\"", text).group(1
 
-        if "acecwply" in url:
-            cmd = f'yt-dlp -o "{name}.%(ext)s" -f "bestvideo[height<={raw_text2}]+bestaudio" --hls-prefer-ffmpeg --no-keep-video --remux-video mkv --no-warning "{url}"'
+    if "acecwply" in url:
+       cmd = f'yt-dlp -o "{name}.%(ext)s" -f "bestvideo[height<={raw_text2}]+bestaudio" --hls-prefer-ffmpeg --no-keep-video --remux-video mkv --no-warning "{url}"'
 
         elif "https://cpvod.testbook.com/" in url:
             url = url.replace("https://cpvod.testbook.com/","https://media-cdn.classplusapp.com/drm/")
