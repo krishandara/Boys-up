@@ -568,6 +568,43 @@ async def txt_handler(bot: Client, m: Message):
         except Exception as e:
             await m.reply_text(f"**Fail Reason »** {e}\n")
             return
+
+    # Function to generate an API key
+def generate_api_key():
+    try:
+        # Generate a random API key
+        api_key = Fernet.generate_key().decode()
+        print(f"Generated API Key: {api_key}")
+        return api_key
+    except Exception as e:
+        print(f"Error generating API key: {e}")
+        return None
+
+# Function to read video links from a text file
+def read_video_links(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            links = file.readlines()
+            links = [link.strip() for link in links if link.strip()]
+            print(f"Retrieved {len(links)} video links.")
+            return links
+    except FileNotFoundError:
+        print(f"Error: The file {file_path} was not found.")
+        return []
+    except Exception as e:
+        print(f"Error reading video links: {e}")
+        return []
+
+# Function to decrypt a given encrypted link
+def decrypt_link(encrypted_link, api_key):
+    try:
+        fernet = Fernet(api_key.encode())
+        decrypted_link = fernet.decrypt(encrypted_link.encode()).decode()
+        print(f"Decrypted Link: {decrypted_link}")
+        return decrypted_link
+    except Exception as e:
+        print(f"Error decrypting link: {e}")
+        return None
         
     failed_count = 0
     count =int(raw_text)    
